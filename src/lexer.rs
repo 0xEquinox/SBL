@@ -3,7 +3,7 @@ use crate::stack::Stack;
 pub struct Lexer {
     stack: Stack,
     src: Vec<char>,
-    pos: i32,
+    pos: usize,
 }
 
 impl Lexer {
@@ -19,14 +19,14 @@ impl Lexer {
     }
 
     fn peek(&self) -> char {
-        self.src[self.pos as usize]
+        self.src[self.pos]
     }
 
     pub fn lex(&mut self) {
 
-        while self.pos < self.src.len() as i32 {
+        while self.pos < self.src.len(){
 
-            let c = self.src[self.pos as usize];
+            let c = self.current_char();
 
             match c {
 
@@ -114,18 +114,18 @@ impl Lexer {
 
                 }
 
-                //todo Fix error when taking number input
                 //check for numeric characters
                 _ if c.is_numeric() => {
 
                     self.pos += 1;
+
                     let mut buf = String::new();
 
                     buf.push(c);
 
                     //Loop until non-numeric character is found
-                    while c.is_numeric() {
-                        buf.push(c);
+                    while self.current_char().is_numeric() {
+                        buf.push(self.current_char());
                         self.pos += 1;
                     }
 
@@ -140,6 +140,12 @@ impl Lexer {
 
         }
 
+    }
+    
+    //Gets the current character
+    //This is required because c only updates at the top of the loop and when we need to check multiple characters we need a way to go ahead
+    fn current_char(&self) -> char {
+        return *self.src.get(self.pos).unwrap();
     }
 
 }
