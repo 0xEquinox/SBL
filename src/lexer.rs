@@ -1,33 +1,34 @@
 use crate::stack::Stack;
 
-pub struct Lexer {
-    stack: Stack,
+//Creates a lexer structure that holds the input data, the stack which is borrowed from main, and the current position we are at while lexing
+//Note that there is a lifetime here and that is because the in order to mutably reference this stack structure we need keep it alive in memory for the duration of the lexer
+pub struct Lexer <'a>{
+    stack: &'a mut Stack,
     src: Vec<char>,
     pos: usize,
 }
 
-impl Lexer {
+impl<'a> Lexer <'a>{
 
-    pub fn new(input_file: String) -> Self {
+    //Constructor for the lexer
+    pub fn new(input_file: String, stack: &'a mut Stack) -> Self {
 
         Self {
-            stack: Stack::new(),
+            stack,
             src: input_file.chars().collect(),
             pos: 0,
         }
 
     }
 
-    fn peek(&self) -> char {
-        self.src[self.pos]
-    }
-
-    pub fn lex(&mut self) {
+    pub fn lex(&mut self){
 
         while self.pos < self.src.len(){
 
+            //Sets the current character to what ever we left it on the previous iteration
             let c = self.current_char();
 
+            //Syntax pattern matcher for SDL
             match c {
 
                 //Check for arithmetic operators
@@ -83,7 +84,10 @@ impl Lexer {
                 '.' => {
 
                     //Check if the next character is s(stack)
-                    if self.peek() == 's' {
+
+                    self.pos += 1;
+
+                    if  self.current_char() == 's' {
                         self.pos += 1;
                         self.stack.print();
                     //If there isn't an s just pop the stack
@@ -92,19 +96,18 @@ impl Lexer {
                     }else{
                         panic!("Stack is empty");
                     }
-
-                    self.pos += 1;
-                }
+                },
 
                 //check for alphabetic characters
                 '"' => {
 
+                    self.pos += 1;
                     let mut buf = String::new();
 
                     buf.push(c);
 
                     //Loop until non-alphabetic character is found
-                    while c.is_alphanumeric() {
+                    while self.current_char().is_alphanumeric() {
                         buf.push(c);
                         self.pos += 1;
                     }
@@ -112,7 +115,7 @@ impl Lexer {
                     //Push the string to the stack as an integer
                     self.stack.push(buf.parse::<i32>().unwrap());
 
-                }
+                },
 
                 //check for numeric characters
                 _ if c.is_numeric() => {
@@ -130,7 +133,7 @@ impl Lexer {
                     }
 
                     self.stack.push(buf.parse::<i32>().unwrap());
-                }
+                },
 
                 _ => {
                     self.pos += 1;
@@ -139,9 +142,8 @@ impl Lexer {
             }
 
         }
-
     }
-    
+
     //Gets the current character
     //This is required because c only updates at the top of the loop and when we need to check multiple characters we need a way to go ahead
     fn current_char(&self) -> char {

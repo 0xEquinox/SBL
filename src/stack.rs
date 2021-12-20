@@ -6,8 +6,6 @@ pub struct Stack{
     stack: Vec<i32>,
 }
 
-//TODO Fix the implementation of the Stack (it isn't pushing and popping elements correct and only stores 1 element at a time)
-
 //Methods
 impl<> Stack<> {
 

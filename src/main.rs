@@ -14,6 +14,8 @@ fn main() {
     if maybe_file.unwrap() == "repl"{
         println!("SDL REPL");
 
+        let mut stack = stack::Stack::new();
+
         //Lex one line at a time with live input
         loop {
             //Create the string we will be lexing
@@ -25,8 +27,10 @@ fn main() {
             std::io::stdin().read_line(&mut input).unwrap();
 
             //Create a new lexer struct and lex the input string
-            let mut lexer = lexer::Lexer::new(input);
+            let mut lexer = lexer::Lexer::new(input, &mut stack);
+
             lexer.lex();
+
         }
 
 
@@ -50,10 +54,9 @@ fn main() {
     }else {
         panic!("Could not open/read file")
     };
+    //Create new stack
 
     // Create a new lexer
-    let mut lexer = lexer::Lexer::new(content);
-    
+
     // Lex the file
-    lexer.lex();
 }
