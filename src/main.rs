@@ -2,11 +2,37 @@ mod lexer;
 mod stack;
 
 use std::env;
+use std::io::Write;
 
 fn main() {
-
+    
     // Get the filename from a command line argument
-    let maybe_file = env::args().nth(1);
+    let argument = env::args().nth(1);
+    let maybe_file = argument.clone();   
+    
+    //Check for repl argument
+    if maybe_file.unwrap() == "repl"{
+        println!("SDL REPL");
+
+        //Lex one line at a time with live input
+        loop {
+            //Create the string we will be lexing
+            let mut input = String::new();
+            print!(">> ");
+
+            //Get the input
+            std::io::stdout().flush().unwrap();
+            std::io::stdin().read_line(&mut input).unwrap();
+
+            //Create a new lexer struct and lex the input string
+            let mut lexer = lexer::Lexer::new(input);
+            lexer.lex();
+        }
+
+
+    }
+
+    let maybe_file = argument.clone();
 
     // If there is no argument, print an error and exit
     let file = if let Some(f) = maybe_file {
@@ -27,5 +53,7 @@ fn main() {
 
     // Create a new lexer
     let mut lexer = lexer::Lexer::new(content);
-
+    
+    // Lex the file
+    lexer.lex();
 }

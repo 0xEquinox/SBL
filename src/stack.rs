@@ -1,10 +1,15 @@
+use std::fmt::Debug;
+
 //Stack is a data structure that stores a list of elements(of given type) in a Last In First Out order
-pub struct Stack<T> {
-    stack: Vec<T>,
+#[derive(Debug)]
+pub struct Stack{
+    stack: Vec<i32>,
 }
 
+
+
 //Methods
-impl<T> Stack<T> {
+impl<> Stack<> {
 
     //Constructor
     pub fn new() -> Self {
@@ -14,17 +19,18 @@ impl<T> Stack<T> {
     }
 
     //Push an element to the top of the stack
-    pub fn push(&mut self, item: T) {
+    pub fn push(&mut self, item: i32) {
         self.stack.push(item);
     }
 
     //Pop the top element from the stack
-    pub fn pop(&mut self) -> Option<T> {
+    pub fn pop(&mut self) -> Option<i32> {
         self.stack.pop()
     }
 
     //Return true if the stack is empty
     pub fn is_empty(&self) -> bool {
+
         self.stack.is_empty()
     }
 
@@ -34,8 +40,13 @@ impl<T> Stack<T> {
     }
 
     //Return the next element in the stack without removing it
-    pub fn peek(&self) -> Option<&T> {
+    pub fn peek(&self) -> Option<&i32> {
         self.stack.last()
+    }
+
+    //prints the stack
+    pub fn print(&self) {
+        println!("{:?}", self.stack);
     }
 
 }
