@@ -238,6 +238,25 @@ impl<'a> Lexer <'a>{
                                 self.pos += 1; //Skip past the if to the else segment
                             }
 
+                        },
+
+                        //Drop the top of the stack
+                        "drop" => {
+                            self.stack.pop();
+                            self.pos += 1;
+                        },
+
+                        //Duplicate the top of the stack
+                        "dup" => {
+                            let top = self.stack.pop().unwrap();
+                            self.stack.push(top);
+                            self.stack.push(top);
+                            self.pos += 1;
+                        },
+
+                        //Swap the top two elements of the stack
+                        "swap" => {
+                            self.stack.swap();
                         }
 
                         _ => {
@@ -245,6 +264,8 @@ impl<'a> Lexer <'a>{
                         }
                     }
                 },
+
+
 
                 _ => {
                     self.pos += 1;
