@@ -4,7 +4,7 @@ use crate::ascii_table;
 //Creates a lexer structure that holds the input data, the stack which is borrowed from main, and the current position we are at while lexing
 //Note that there is a lifetime here and that is because the in order to mutably reference this stack structure we need keep it alive in memory for the duration of the lexer
 pub struct Lexer <'a>{
-    stack: &'a mut Stack,
+    stack: &'a mut Stack<i64>,
     src: Vec<char>,
     pos: usize,
     ascii: [(char, i32); 216],
@@ -13,7 +13,7 @@ pub struct Lexer <'a>{
 impl<'a> Lexer <'a>{
 
     //Constructor for the lexer
-    pub fn new(input_file: String, stack: &'a mut Stack) -> Self {
+    pub fn new(input_file: String, stack: &'a mut Stack<i64>) -> Self {
 
         Self {
             stack,
@@ -120,7 +120,8 @@ impl<'a> Lexer <'a>{
 
                     if  self.current_char() == 's' {
                         self.pos += 1;
-                        self.stack.print();
+                        //print the stack
+                        println!("{:?}", self.stack);
                     //If there isn't an s just pop the stack
                     }else if !self.stack.is_empty() {
                         println!("{}", self.stack.pop().unwrap());
