@@ -1,4 +1,7 @@
+use std::char::from_digit;
+use std::collections::HashMap;
 use crate::stack::Stack;
+use crate::ascii_table;
 
 //Creates a lexer structure that holds the input data, the stack which is borrowed from main, and the current position we are at while lexing
 //Note that there is a lifetime here and that is because the in order to mutably reference this stack structure we need keep it alive in memory for the duration of the lexer
@@ -6,6 +9,7 @@ pub struct Lexer <'a>{
     stack: &'a mut Stack,
     src: Vec<char>,
     pos: usize,
+    ascii: [(char, i32); 216],
 }
 
 impl<'a> Lexer <'a>{
@@ -17,6 +21,7 @@ impl<'a> Lexer <'a>{
             stack,
             src: input_file.chars().collect(),
             pos: 0,
+            ascii: ascii_table::init(),
         }
 
     }
@@ -104,17 +109,25 @@ impl<'a> Lexer <'a>{
                     self.pos += 1;
                     let mut buf = String::new();
 
-                    buf.push(c);
-
                     //Loop until non-alphabetic character is found
-                    while self.current_char().is_alphanumeric() {
-                        buf.push(c);
+                    while self.current_char() != '"' {
+                        let position:u32 = self.ascii.iter()
+                            .position(|&x| x.0 == self.current_char())
+                            .unwrap() as u32;
+
+                        let digit_string = self.ascii[position as usize].1.to_string();
+
+                        buf.push_str(&digit_string);
+
                         self.pos += 1;
                     }
 
-                    //Push the string to the stack as an integer
-                    self.stack.push(buf.parse::<i32>().unwrap());
+                    let num = buf.parse::<i64>().unwrap();
 
+                    //Push the string to the stack as an integer
+                    self.stack.push(num);
+
+                    self.pos += 1;
                 },
 
                 //check for numeric characters
@@ -132,7 +145,7 @@ impl<'a> Lexer <'a>{
                         self.pos += 1;
                     }
 
-                    self.stack.push(buf.parse::<i32>().unwrap());
+                    self.stack.push(buf.parse::<i64>().unwrap());
                 },
 
                 _ => {

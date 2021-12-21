@@ -1,5 +1,6 @@
 mod lexer;
 mod stack;
+mod ascii_table;
 
 use std::env;
 use std::io::Write;
