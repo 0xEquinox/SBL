@@ -1,5 +1,3 @@
-use std::char::from_digit;
-use std::collections::HashMap;
 use crate::stack::Stack;
 use crate::ascii_table;
 
@@ -42,7 +40,7 @@ impl<'a> Lexer <'a>{
                     if self.stack.len() >= 2 {
                         let num1 = self.stack.pop().unwrap();
                         let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num1 + num2);
+                        self.stack.push(num2 + num1);
                     }else {
                         panic!("Not enough numbers to complete the operation");
                     }
@@ -54,7 +52,7 @@ impl<'a> Lexer <'a>{
                     if self.stack.len() >= 2 {
                         let num1 = self.stack.pop().unwrap();
                         let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num1 - num2);
+                        self.stack.push(num2 - num1);
                     }else {
                         panic!("Not enough numbers to complete the operation");
                     }
@@ -66,7 +64,7 @@ impl<'a> Lexer <'a>{
                     if self.stack.len() >= 2 {
                         let num1 = self.stack.pop().unwrap();
                         let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num1 * num2);
+                        self.stack.push(num2 * num1);
                     }else {
                         panic!("Not enough numbers to complete the operation");
                     }
@@ -78,7 +76,35 @@ impl<'a> Lexer <'a>{
                     if self.stack.len() >= 2 {
                         let num1 = self.stack.pop().unwrap();
                         let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num1 / num2);
+                        self.stack.push(num2 / num1);
+                    }else {
+                        panic!("Not enough numbers to complete the operation");
+                    }
+                    self.pos += 1;
+                },
+
+                '^' => {
+                    //Check that there are enough numbers to complete the operation
+                    if self.stack.len() >= 2 {
+                        let num1 = self.stack.pop().unwrap();
+                        let num2 = self.stack.pop().unwrap();
+
+                        self.stack.push(num2.pow(num1 as u32));
+
+                    }else {
+                        panic!("Not enough numbers to complete the operation");
+                    }
+                    self.pos += 1;
+                },
+
+                '%' => {
+                    //Check that there are enough numbers to complete the operation
+                    if self.stack.len() >= 2 {
+                        let num1 = self.stack.pop().unwrap();
+                        let num2 = self.stack.pop().unwrap();
+
+                        self.stack.push(num2 % num1);
+
                     }else {
                         panic!("Not enough numbers to complete the operation");
                     }
@@ -97,7 +123,7 @@ impl<'a> Lexer <'a>{
                         self.stack.print();
                     //If there isn't an s just pop the stack
                     }else if !self.stack.is_empty() {
-                        self.stack.pop();
+                        println!("{}", self.stack.pop().unwrap());
                     }else{
                         panic!("Stack is empty");
                     }
