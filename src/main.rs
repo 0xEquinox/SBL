@@ -34,7 +34,6 @@ fn main() {
 
         }
 
-
     }
 
     let maybe_file = argument.clone();

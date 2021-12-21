@@ -5,6 +5,7 @@ use crate::ascii_table;
 //Note that there is a lifetime here and that is because the in order to mutably reference this stack structure we need keep it alive in memory for the duration of the lexer
 pub struct Lexer <'a>{
     stack: &'a mut Stack<i64>,
+    expression_stack: Stack<String>,
     src: Vec<char>,
     pos: usize,
     ascii: [(char, i32); 216],
@@ -17,6 +18,7 @@ impl<'a> Lexer <'a>{
 
         Self {
             stack,
+            expression_stack: Stack::new(),
             src: input_file.chars().collect(),
             pos: 0,
             ascii: ascii_table::init(),
@@ -130,6 +132,23 @@ impl<'a> Lexer <'a>{
                     }
                 },
 
+                //Check for expressions
+                '(' => {
+
+                    self.pos += 1;
+
+                    let mut buf:String = String::new();
+
+                    //While the next character isn't a )
+                    while self.current_char() != ')' {
+                        buf.push(self.current_char());
+                        self.pos += 1;
+                    }
+
+                    //Add the expression to the expression stack
+                    self.expression_stack.push(buf);
+                }
+
                 //check for alphabetic characters
                 '"' => {
 
@@ -175,6 +194,58 @@ impl<'a> Lexer <'a>{
                     self.stack.push(buf.parse::<i64>().unwrap());
                 },
 
+                //Keywords
+                _ if c.is_alphabetic() => {
+
+                    self.pos += 1;
+
+                    let mut buf = String::new();
+
+                    buf.push(c);
+
+                    //Loop until non-alphabetic character is found
+                    while self.current_char().is_alphabetic() {
+                        buf.push(self.current_char());
+                        self.pos += 1;
+                    }
+
+                    //convert the String to &str
+                    let maybe_keyword = &buf[..];
+
+                    match maybe_keyword {
+
+                        "if" => {
+
+                            //if it is true then evaluate the true expression which we know will be the second one on the expression stack, else continue to the code after the if that will only run if false
+                            if self.stack.pop().unwrap() == 0 {
+                                //If the expression stack has less than 1 expressions then we know there isn't enough expressions to execute the if statement
+                                if self.expression_stack.len() > 0 {
+                                    self.eval_expr();
+                                }else{
+                                    panic!("Missing true expression");
+                                }
+
+                                //Loop until ; is found (since a true expression was evaluated we want to skip past the rest of the else statements)
+                                while self.current_char() != ';' {
+                                    //Check for end of file (if we are at the end of the file then we know there is an error due to the missing ;)
+                                    if self.pos >= self.src.len() {
+                                        panic!("Missing ';'");
+                                    }
+                                    self.pos += 1;
+                                }
+
+                            }else {
+                                self.pos += 1; //Skip past the if to the else segment
+                            }
+
+                        }
+
+                        _ => {
+                            panic!("Invalid keyword");
+                        }
+                    }
+                },
+
                 _ => {
                     self.pos += 1;
                 }
@@ -189,6 +260,9 @@ impl<'a> Lexer <'a>{
     fn current_char(&self) -> char {
         return *self.src.get(self.pos).unwrap();
     }
+
+    //Create a new lexer for the expression manipulating the current stack
+    fn eval_expr(&mut self)  { Lexer::new(self.expression_stack.pop().unwrap(), &mut self.stack).lex(); }
 
 }
 

@@ -23,7 +23,12 @@ impl<T> Stack<T> {
 
     //Pop the top element from the stack
     pub fn pop(&mut self) -> Option<T> {
-        self.stack.pop()
+        //check that the stack is not empty
+        if !self.stack.is_empty(){
+            self.stack.pop()
+        }else{
+            panic!("Stack underflow: cannot pop from an empty stack");
+        }
     }
 
     //Return true if the stack is empty
@@ -39,6 +44,22 @@ impl<T> Stack<T> {
     //Return the next element in the stack without removing it
     pub fn peek(&self) -> Option<&T> {
         self.stack.last()
+    }
+
+    pub fn swap(&mut self) {
+        //Top element is moved to the second spot
+        let temp1 = self.stack.pop().unwrap();
+
+        if !self.stack.is_empty() {
+            //Second element is moved to the top
+            let temp2 = self.stack.pop().unwrap();
+
+            self.stack.push(temp1);
+            self.stack.push(temp2);
+        }else {
+            self.stack.push(temp1);
+        }
+
     }
 }
 
