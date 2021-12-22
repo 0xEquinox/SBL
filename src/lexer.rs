@@ -116,7 +116,7 @@ impl<'a> Lexer <'a>{
                 //check for pop command
                 '.' => {
 
-                    //Check if the next character is s(stack)
+                    //Check if the next character is s(stack) or " (for printing)
 
                     self.pos += 1;
 
@@ -124,8 +124,19 @@ impl<'a> Lexer <'a>{
                         self.pos += 1;
                         //print the stack
                         println!("{:?}", self.stack);
+                    //Check if it's a print command
+                    }else if self.current_char() == '"' {
+                        //Take the following string and print it to the console
+                        self.pos += 1;
+                        let mut string = String::new();
+                        while self.current_char() != '"' {
+                            string.push(self.current_char());
+                            self.pos += 1;
+                        }
+                        self.pos += 1;
+                        println!("{}", string);
                     //If there isn't an s just pop the stack
-                    }else if !self.stack.is_empty() {
+                    } else if !self.stack.is_empty() {
                         println!("{}", self.stack.pop().unwrap());
                     }else{
                         panic!("Stack is empty");
