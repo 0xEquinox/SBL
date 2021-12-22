@@ -147,6 +147,7 @@ impl<'a> Lexer <'a>{
 
                     //Add the expression to the expression stack
                     self.expression_stack.push(buf);
+
                 }
 
                 //check for alphabetic characters
@@ -179,15 +180,12 @@ impl<'a> Lexer <'a>{
                 //check for numeric characters
                 _ if c.is_numeric() => {
 
-                    self.pos += 1;
-
                     let mut buf = String::new();
-
-                    buf.push(c);
 
                     //Loop until non-numeric character is found
                     while self.current_char().is_numeric() {
                         buf.push(self.current_char());
+
                         self.pos += 1;
                     }
 
@@ -257,7 +255,26 @@ impl<'a> Lexer <'a>{
                         //Swap the top two elements of the stack
                         "swap" => {
                             self.stack.swap();
-                        }
+                        },
+
+                        //For loop
+                        "for" => {
+                            //Check if there is enough expressions to execute the for loop
+                            if self.expression_stack.len() > 0 {
+                                //Check that the loop was given valid parameters
+                                if self.stack.len() >= 2{
+                                    for _ in self.stack.pop().unwrap() .. self.stack.pop().unwrap() {
+                                        self.expression_stack.push(self.expression_stack.peek().unwrap().clone());
+                                        self.eval_expr();
+                                    }
+                                }else{
+                                    panic!("Invalid for loop parameters");
+                                }
+
+                            }else{
+                                panic!("Missing expression");
+                            }
+                        },
 
                         _ => {
                             panic!("Invalid keyword");

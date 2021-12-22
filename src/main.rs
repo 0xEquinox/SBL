@@ -13,7 +13,7 @@ fn main() {
     
     //Check for repl argument
     if maybe_file.unwrap() == "repl"{
-        println!("SDL REPL");
+        println!("SBL REPL");
 
         let mut stack = stack::Stack::new();
 
