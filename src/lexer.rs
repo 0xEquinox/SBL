@@ -67,17 +67,20 @@ impl<'a> Lexer <'a>{
                     match self.current_char() {
                         's' => {
                             self.pos += 1;
+
+                            //todo make the printing look nicer
                             println!("{:?}", self.stack);
                         },
 
                         '"' => {
                             self.pos += 1;
                             let mut string = String::new();
+
                             while self.current_char() != '"' {
                                 string.push(self.current_char());
                                 self.pos += 1;
                             }
-                            self.stack.push(string.parse::<i64>().unwrap());
+                            println!("{}", string);
                         },
 
                         //The default case is to just pop the stack
@@ -94,19 +97,15 @@ impl<'a> Lexer <'a>{
 
                 //Check for expressions
                 '(' => {
-
                     self.pos += 1;
-
                     let mut buf:String = String::new();
 
-                    //While the next character isn't a )
                     while self.current_char() != ')' {
                         buf.push(self.current_char());
-
                         self.pos += 1;
                     }
 
-                    //Add the expression to the expression stack
+                    //Push the expression to the expression stack
                     self.expression_stack.push(buf);
 
                 }
@@ -117,7 +116,7 @@ impl<'a> Lexer <'a>{
                     self.pos += 1;
                     let mut buf = String::new();
 
-                    //Loop until non-alphabetic character is found
+                    //Loop until end of string
                     while self.current_char() != '"' {
                         let position:u32 = self.ascii.iter()
                             .position(|&x| x.0 == self.current_char())
@@ -130,12 +129,13 @@ impl<'a> Lexer <'a>{
                         self.pos += 1;
                     }
 
+                    self.pos += 1;
+
                     let num = buf.parse::<i64>().unwrap();
 
                     //Push the string to the stack as an integer
                     self.stack.push(num);
 
-                    self.pos += 1;
                 },
 
                 //check for numeric characters
@@ -149,7 +149,10 @@ impl<'a> Lexer <'a>{
                         self.pos += 1;
                     }
 
-                    self.stack.push(buf.parse::<i64>().unwrap());
+                    //temp variable to hold the number
+                    let num = buf.parse::<i64>().unwrap();
+
+                    self.stack.push(num);
                 },
 
                 //Keywords
