@@ -1,9 +1,8 @@
-use std::collections::HashMap;
 
 pub(crate) fn init() -> [(char, i32); 216]{
 
-    //Return a hashmap with all of the printable ASCII table characters (Key: Character, Value: ASCII Code)
-    ([
+    //Return a tuple with all of the printable ASCII table characters (Key: Character, Value: ASCII Code)
+    [
 
         (' ', 32),
         ('!', 33),
@@ -222,7 +221,7 @@ pub(crate) fn init() -> [(char, i32); 216]{
         ('þ', 254),
         ('ÿ', 255),
 
-    ])
+    ]
 
 }
 
