@@ -87,7 +87,7 @@ impl<'a> Lexer <'a>{
                         _ => {
                             //If the stack is empty then we can't pop anything
                             if !self.stack.is_empty() {
-                                self.stack.pop();
+                                println!("{}", self.stack.pop().unwrap());
                             } else {
                                 panic!("Stack is empty");
                             }
@@ -144,7 +144,7 @@ impl<'a> Lexer <'a>{
                     let mut buf = String::new();
 
                     //Loop until non-numeric character is found
-                    while self.current_char().is_numeric() {
+                    while self.pos < self.src.len() && self.current_char().is_numeric() {
                         buf.push(self.current_char());
                         self.pos += 1;
                     }
