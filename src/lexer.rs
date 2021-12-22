@@ -1,3 +1,4 @@
+use std::ptr::null;
 use crate::stack::Stack;
 use crate::ascii_table;
 
@@ -37,81 +38,25 @@ impl<'a> Lexer <'a>{
             match c {
 
                 //Check for arithmetic operators
-                '+' => {
-                    //Check that there are enough numbers to complete the operation
+                '+' | '-' | '*' | '/' | '^' | '%' => {
                     if self.stack.len() >= 2 {
                         let num1 = self.stack.pop().unwrap();
                         let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num2 + num1);
-                    }else {
+                        match c {
+                            '+' => self.stack.push(num2 + num1),
+                            '-' => self.stack.push(num2 - num1),
+                            '*' => self.stack.push(num2 * num1),
+                            '/' => self.stack.push(num2 / num1),
+                            '^' => self.stack.push(num2.pow(num1 as u32)),
+                            '%' => self.stack.push(num2 % num1),
+                            _ => panic!("Invalid operator"),
+                        }
+                    } else {
                         panic!("Not enough numbers to complete the operation");
                     }
                     self.pos += 1;
-                },
+                }
 
-                '-' => {
-                    //Check that there are enough numbers to complete the operation
-                    if self.stack.len() >= 2 {
-                        let num1 = self.stack.pop().unwrap();
-                        let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num2 - num1);
-                    }else {
-                        panic!("Not enough numbers to complete the operation");
-                    }
-                    self.pos += 1;
-                },
-
-                '*' => {
-                    //Check that there are enough numbers to complete the operation
-                    if self.stack.len() >= 2 {
-                        let num1 = self.stack.pop().unwrap();
-                        let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num2 * num1);
-                    }else {
-                        panic!("Not enough numbers to complete the operation");
-                    }
-                    self.pos += 1;
-                },
-
-                '/' => {
-                    //Check that there are enough numbers to complete the operation
-                    if self.stack.len() >= 2 {
-                        let num1 = self.stack.pop().unwrap();
-                        let num2 = self.stack.pop().unwrap();
-                        self.stack.push(num2 / num1);
-                    }else {
-                        panic!("Not enough numbers to complete the operation");
-                    }
-                    self.pos += 1;
-                },
-
-                '^' => {
-                    //Check that there are enough numbers to complete the operation
-                    if self.stack.len() >= 2 {
-                        let num1 = self.stack.pop().unwrap();
-                        let num2 = self.stack.pop().unwrap();
-
-                        self.stack.push(num2.pow(num1 as u32));
-
-                    }else {
-                        panic!("Not enough numbers to complete the operation");
-                    }
-                    self.pos += 1;
-                },
-
-                '%' => {
-                    //Check that there are enough numbers to complete the operation
-                    if self.stack.len() >= 2 {
-                        let num1 = self.stack.pop().unwrap();
-                        let num2 = self.stack.pop().unwrap();
-
-                        self.stack.push(num2 % num1);
-
-                    }else {
-                        panic!("Not enough numbers to complete the operation");
-                    }
-                    self.pos += 1;
-                },
 
                 //check for pop command
                 '.' => {
@@ -125,20 +70,24 @@ impl<'a> Lexer <'a>{
                         //print the stack
                         println!("{:?}", self.stack);
                     //Check if it's a print command
-                    }else if self.current_char() == '"' {
+                    } else if self.current_char() == '"' {
                         //Take the following string and print it to the console
                         self.pos += 1;
+
                         let mut string = String::new();
+
                         while self.current_char() != '"' {
                             string.push(self.current_char());
                             self.pos += 1;
                         }
+
                         self.pos += 1;
+
                         println!("{}", string);
                     //If there isn't an s just pop the stack
                     } else if !self.stack.is_empty() {
                         println!("{}", self.stack.pop().unwrap());
-                    }else{
+                    } else{
                         panic!("Stack is empty");
                     }
                 },
@@ -153,6 +102,7 @@ impl<'a> Lexer <'a>{
                     //While the next character isn't a )
                     while self.current_char() != ')' {
                         buf.push(self.current_char());
+
                         self.pos += 1;
                     }
 
@@ -161,7 +111,7 @@ impl<'a> Lexer <'a>{
 
                 }
 
-                //check for alphabetic characters
+                //check for strings
                 '"' => {
 
                     self.pos += 1;
@@ -196,7 +146,6 @@ impl<'a> Lexer <'a>{
                     //Loop until non-numeric character is found
                     while self.current_char().is_numeric() {
                         buf.push(self.current_char());
-
                         self.pos += 1;
                     }
 
@@ -230,7 +179,7 @@ impl<'a> Lexer <'a>{
                                 //If the expression stack has less than 1 expressions then we know there isn't enough expressions to execute the if statement
                                 if self.expression_stack.len() > 0 {
                                     self.eval_expr();
-                                }else{
+                                } else{
                                     panic!("Missing true expression");
                                 }
 
@@ -243,7 +192,7 @@ impl<'a> Lexer <'a>{
                                     self.pos += 1;
                                 }
 
-                            }else {
+                            } else {
                                 self.pos += 1; //Skip past the if to the else segment
                             }
 
