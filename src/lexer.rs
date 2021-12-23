@@ -65,35 +65,45 @@ impl<'a> Lexer <'a>{
 
                     self.pos += 1;
 
+                    //In order to pop the check the next character we have to make sure that there is a next character
+                    //If there is not one we then know that this is just a single pop command and we can just pop the stack
+                    //Finally we must ensure that the stack is not empty before we pop otherwise we will get an error
+                    if self.src.len() > self.pos {
                     //Check if the next character is s(stack) or " (for printing)
-                    match self.current_char() {
-                        's' => {
-                            self.pos += 1;
-
-                            //todo make the printing look nicer
-                            println!("{:?}", self.stack);
-                        },
-
-                        '"' => {
-                            self.pos += 1;
-                            let mut string = String::new();
-
-                            while self.current_char() != '"' {
-                                string.push(self.current_char());
+                        match self.current_char() {
+                            's' => {
                                 self.pos += 1;
-                            }
-                            println!("{}", string);
-                        },
 
-                        //The default case is to just pop the stack
-                        _ => {
-                            //If the stack is empty then we can't pop anything
-                            if !self.stack.is_empty() {
-                                println!("{}", self.stack.pop().unwrap());
-                            } else {
-                                panic!("Stack is empty");
-                            }
-                        },
+                                //todo make the printing look nicer
+                                println!("{:?}", self.stack);
+                            },
+
+                            '"' => {
+                                self.pos += 1;
+                                let mut string = String::new();
+
+                                while self.current_char() != '"' {
+                                    string.push(self.current_char());
+                                    self.pos += 1;
+                                }
+                                self.pos += 1;
+                                println!("{}", string);
+                            },
+
+                            //The default case is to just pop the stack
+                            _ => {
+                                //If the stack is empty then we can't pop anything
+                                if !self.stack.is_empty() {
+                                    println!("{}", self.stack.pop().unwrap());
+                                } else {
+                                    panic!("Stack is empty");
+                                }
+                            },
+                        }
+                    } else if !self.stack.is_empty() {
+                        println!("{}", self.stack.pop().unwrap());
+                    } else {
+                        panic!("Stack is empty");
                     }
                 },
 
