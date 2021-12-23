@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 use crate::stack::Stack;
 use crate::ascii_table;
 
@@ -12,6 +11,7 @@ pub struct Lexer <'a>{
     pos: usize,
     ascii: [(char, i32); 216],
     fn_var: &'a mut HashMap<String, Vec<i64>>,
+    expression_depth: i16,
 }
 
 impl<'a> Lexer <'a>{
@@ -26,6 +26,7 @@ impl<'a> Lexer <'a>{
             pos: 0,
             ascii: ascii_table::init(),
             fn_var,
+            expression_depth: 0,
         }
 
     }
@@ -107,13 +108,26 @@ impl<'a> Lexer <'a>{
                     }
                 },
 
-                //Check for expressions
+                //Check for expressions by buffering characters to a string until we find a closing bracket of the same depth
+                //Depth checking is required lest the expression would close when it finds the end of a nested expression
                 '(' => {
                     self.pos += 1;
+                    self.expression_depth += 1;
                     let mut buf:String = String::new();
 
-                    while self.pos < self.src.len() && self.current_char() != ')' {
-                        buf.push(self.current_char());
+                    while self.pos < self.src.len(){
+                        if self.current_char() == ')'&& self.expression_depth == 1 {
+                            break;
+                        } else {
+                            buf.push(self.current_char());
+                        }
+
+                        if self.current_char() == '(' {
+                            self.expression_depth += 1;
+                        } else if self.current_char() == ')' {
+                            self.expression_depth -= 1;
+                        }
+
                         self.pos += 1;
                     }
 
