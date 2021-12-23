@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 use crate::stack::Stack;
 use crate::ascii_table;
 
@@ -10,13 +11,13 @@ pub struct Lexer <'a>{
     src: Vec<char>,
     pos: usize,
     ascii: [(char, i32); 216],
-    fn_var: HashMap<String, Vec<i64>>,
+    fn_var: &'a mut HashMap<String, Vec<i64>>,
 }
 
 impl<'a> Lexer <'a>{
 
     //Constructor for the lexer
-    pub fn new(input_file: String, stack: &'a mut Stack<i64>) -> Self {
+    pub fn new(input_file: String, stack: &'a mut Stack<i64>, fn_var: &'a mut HashMap<String, Vec<i64>>) -> Self {
 
         Self {
             stack,
@@ -24,7 +25,7 @@ impl<'a> Lexer <'a>{
             src: input_file.chars().collect(),
             pos: 0,
             ascii: ascii_table::init(),
-            fn_var: HashMap::new(),
+            fn_var,
         }
 
     }
@@ -101,7 +102,7 @@ impl<'a> Lexer <'a>{
                     self.pos += 1;
                     let mut buf:String = String::new();
 
-                    while self.current_char() != ')' {
+                    while self.pos < self.src.len() && self.current_char() != ')' {
                         buf.push(self.current_char());
                         self.pos += 1;
                     }
@@ -245,8 +246,29 @@ impl<'a> Lexer <'a>{
                             //The first check is to see if the keyword ALREADY exists in the fn_var map if it does then this is a call to that expression which means we need to evaluate it
                             //The second check is to see if the keyword is a declaration of a variable or function if it is then we need to add it to the fn_var map with the given expression
                             //If both checks fail then we have an error
-                            if self.fn_var.contains_key(maybe_keyword) {
-                                println!("Calling function {}", maybe_keyword);
+                            if maybe_keyword.chars().nth(maybe_keyword.len() - 1).unwrap() == ':' {
+                                //If this is a function or variable declaration we need to add it to the fn_var map with the top of the expression stack
+                                //We need to remove the ':' from the keyword, and then convert the top of the expression stack to a 64 bit integer vector
+                                //Then both values can be added to the fn_var map
+                                let keyword: String = maybe_keyword.chars().take(maybe_keyword.len() - 1).collect();
+                                let expression = self.expression_stack.pop().unwrap();
+
+                                let mut integer_expression:Vec<i64> = Vec::new();
+
+                                for c in expression.chars() {
+                                    let position:u32 = self.ascii.iter()
+                                        .position(|&x| x.0 == c)
+                                        .unwrap() as u32;
+
+                                    let val:i64 = self.ascii.get(position as usize).unwrap().1 as i64;
+
+                                    integer_expression.push(val);
+                                }
+
+                                //Add the keyword and expression to the fn_var map
+                                self.fn_var.insert(keyword, integer_expression);
+
+                            } else if self.fn_var.contains_key(maybe_keyword) {
                                 //If the function or variable is a function then we need to evaluate the expression
                                 //To do this we must push the expression onto the expression stack and then evaluate it with eval_expr()
                                 //Since variables and functions are stored as 64 bit integers we need to convert the expression to a String before pushing it onto the expression stack
@@ -272,31 +294,6 @@ impl<'a> Lexer <'a>{
                                 self.expression_stack.push(expression);
                                 self.eval_expr();
 
-                            } else if maybe_keyword.chars().nth(maybe_keyword.len() - 1).unwrap() == ':' {
-                                //If this is a function or variable declaration we need to add it to the fn_var map with the top of the expression stack
-                                //We need to remove the ':' from the keyword, and then convert the top of the expression stack to a 64 bit integer vector
-                                //Then both values can be added to the fn_var map
-                                let keyword: String = maybe_keyword.chars().take(maybe_keyword.len() - 1).collect();
-                                let expression = self.expression_stack.pop().unwrap();
-
-                                let mut integer_expression:Vec<i64> = Vec::new();
-
-                                for c in expression.chars() {
-                                    let position:u32 = self.ascii.iter()
-                                        .position(|&x| x.0 == c)
-                                        .unwrap() as u32;
-
-                                    let val:i64 = self.ascii.get(position as usize).unwrap().1 as i64;
-
-                                    integer_expression.push(val);
-                                }
-
-                                //Add the keyword and expression to the fn_var map
-                                self.fn_var.insert(keyword, integer_expression);
-
-                                //print the fn_var map for debugging
-                                println!("{:?}", self.fn_var);
-
                             }else {
                                 panic!("Unknown keyword");
                             }
@@ -320,7 +317,7 @@ impl<'a> Lexer <'a>{
     }
 
     //Create a new lexer for the expression manipulating the current stack
-    fn eval_expr(&mut self)  { Lexer::new(self.expression_stack.pop().unwrap(), &mut self.stack).lex(); }
+    fn eval_expr(&mut self)  { Lexer::new(self.expression_stack.pop().unwrap(), &mut self.stack, &mut self.fn_var).lex(); }
 
 }
 

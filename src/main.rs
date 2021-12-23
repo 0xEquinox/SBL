@@ -2,8 +2,10 @@ mod lexer;
 mod stack;
 mod ascii_table;
 
+use std::collections::HashMap;
 use std::env;
 use std::io::Write;
+use crate::stack::Stack;
 
 fn main() {
     
@@ -16,6 +18,7 @@ fn main() {
         println!("SBL REPL");
 
         let mut stack = stack::Stack::new();
+        let mut fn_var: HashMap<String, Vec<i64>> = HashMap::new();
 
         //Lex one line at a time with live input
         loop {
@@ -28,7 +31,7 @@ fn main() {
             std::io::stdin().read_line(&mut input).unwrap();
 
             //Create a new lexer struct and lex the input string
-            let mut lexer = lexer::Lexer::new(input, &mut stack);
+            let mut lexer = lexer::Lexer::new(input, &mut stack, &mut fn_var);
 
             lexer.lex();
 
@@ -54,9 +57,13 @@ fn main() {
     }else {
         panic!("Could not open/read file")
     };
-    //Create new stack
+    //Create new stack and function variable hashmap
+    let mut stack:Stack<i64> = stack::Stack::new();
+    let mut fn_var: HashMap<String, Vec<i64>> = HashMap::new();
 
     // Create a new lexer
+    let mut lexer = lexer::Lexer::new(content, &mut stack, &mut fn_var);
 
     // Lex the file
+    lexer.lex();
 }
