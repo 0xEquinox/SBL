@@ -27,22 +27,24 @@ fn main() {
 
     if is_argument(&command_line_argument.as_ref().unwrap()){
         run(is_repl_or_filepath(&command_line_argument.as_ref().unwrap()));
+    } else {
+        panic!("Expected a filepath as a command line found: {}", &command_line_argument.as_ref().unwrap());
     }
 
 }
 
 fn is_argument(argument: &String) -> bool {
     if argument.is_empty(){
-        panic!("No argument provided");
+        return false;
     }
     return true;
 }
 
 fn is_repl_or_filepath(argument: &String) -> RunType {
-    if argument.to_lowercase() == "repl"{
-        return RunType::Repl;
+    return if argument.to_lowercase() == "repl" {
+        RunType::Repl
     } else {
-        return RunType::File { file_name: argument.to_string() };
+        RunType::File { file_name: argument.to_string() }
     }
 }
 
@@ -51,7 +53,7 @@ fn run(run_type: RunType){
     if run_type == RunType::Repl{
         run_repl();
     } else if let RunType::File { file_name } = run_type {
-        run_file(&file_name);
+        run_readable_file(&file_name);
     }
 
 }
