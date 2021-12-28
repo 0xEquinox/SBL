@@ -7,63 +7,98 @@ use std::env;
 use std::io::Write;
 use crate::stack::Stack;
 
+struct Input {
+    stack: Stack<i64>,
+    fn_var_hashmap: HashMap<String, Vec<i64>>,
+}
+
+#[derive(PartialEq)]
+enum RunType {
+    Repl,
+    File {
+        file_name: String,
+    },
+}
+
 fn main() {
     
     // Get the filename from a command line argument
-    let argument = env::args().nth(1);
-    let maybe_file = argument.clone();   
-    
-    //Check for repl argument
-    if maybe_file.unwrap() == "repl"{
-        println!("SBL REPL");
+    let command_line_argument = &env::args().nth(1);
 
-        let mut stack = stack::Stack::new();
-        let mut fn_var: HashMap<String, Vec<i64>> = HashMap::new();
-
-        //Lex one line at a time with live input
-        loop {
-            //Create the string we will be lexing
-            let mut input = String::new();
-            print!(">> ");
-
-            //Get the input
-            std::io::stdout().flush().unwrap();
-            std::io::stdin().read_line(&mut input).unwrap();
-
-            //Create a new lexer struct and lex the input string
-            let mut lexer = lexer::Lexer::new(input, &mut stack, &mut fn_var);
-
-            lexer.lex();
-
-        }
-
+    if is_argument(&command_line_argument.as_ref().unwrap()){
+        run(is_repl_or_filepath(&command_line_argument.as_ref().unwrap()));
     }
 
-    let maybe_file = argument.clone();
+}
 
-    // If there is no argument, print an error and exit
-    let file = if let Some(f) = maybe_file {
-        f
-    }else {
-        panic!("Expected a file found: {:?}", maybe_file)
-    };
+fn is_argument(argument: &String) -> bool {
+    if argument.is_empty(){
+        panic!("No argument provided");
+    }
+    return true;
+}
 
-    //Read file
-    let maybe_content = std::fs::read_to_string(file);
+fn is_repl_or_filepath(argument: &String) -> RunType {
+    if argument.to_lowercase() == "repl"{
+        return RunType::Repl;
+    } else {
+        return RunType::File { file_name: argument.to_string() };
+    }
+}
 
-    // If the file could not be read, print an error and exit
-    let content = if maybe_content.is_ok() {
-        maybe_content.unwrap()
-    }else {
-        panic!("Could not open/read file")
-    };
-    //Create new stack and function variable hashmap
-    let mut stack:Stack<i64> = stack::Stack::new();
-    let mut fn_var: HashMap<String, Vec<i64>> = HashMap::new();
+fn run(run_type: RunType){
 
-    // Create a new lexer
-    let mut lexer = lexer::Lexer::new(content, &mut stack, &mut fn_var);
+    if run_type == RunType::Repl{
+        run_repl();
+    } else if let RunType::File { file_name } = run_type {
+        run_file(&file_name);
+    }
 
-    // Lex the file
+}
+
+fn run_readable_file(file: &String) {
+    if can_be_read(file){
+        run_file(file);
+    }
+}
+
+fn run_repl() {
+    println!("SBL REPL");
+
+    loop {
+        println!(">>");
+        run_line();
+    }
+}
+
+fn run_line() {
+    let mut input_output_data:Input = Input {stack: Stack::new(), fn_var_hashmap: HashMap::new()};
+
+    let mut lexer = lexer::Lexer::new(&get_input(), &mut input_output_data.stack, &mut input_output_data.fn_var_hashmap);
     lexer.lex();
+}
+
+fn can_be_read(file: &String) -> bool {
+
+    if std::fs::read_to_string(file).is_ok() {
+        return true;
+    }
+    panic!("Could not open/read file");
+}
+
+fn run_file(file: &String){
+    let mut input_output_data:Input = Input {stack: Stack::new(), fn_var_hashmap: HashMap::new()};
+    let mut lexer = lexer::Lexer::new(file, &mut input_output_data.stack, &mut input_output_data.fn_var_hashmap);
+
+    lexer.lex();
+}
+
+fn get_input() -> String{
+
+    let mut input = String::new();
+
+    std::io::stdout().flush().unwrap();
+    std::io::stdin().read_line(&mut input).unwrap();
+
+    return input;
 }

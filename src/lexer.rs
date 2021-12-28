@@ -17,7 +17,7 @@ pub struct Lexer <'a>{
 impl<'a> Lexer <'a>{
 
     //Constructor for the lexer
-    pub fn new(input_file: String, stack: &'a mut Stack<i64>, fn_var: &'a mut HashMap<String, Vec<i64>>) -> Self {
+    pub fn new(input_file: &String, stack: &'a mut Stack<i64>, fn_var: &'a mut HashMap<String, Vec<i64>>) -> Self {
 
         Self {
             stack,
@@ -42,7 +42,7 @@ impl<'a> Lexer <'a>{
             match c {
 
                 //Check for arithmetic operators
-                '+' | '-' | '*' | '/' | '^' | '%' => {
+                '+' | '-' | '*' | '/' | '^' | '%' | '!' | '~' | '|' | '&' | '<' | '>' => {
                     if self.stack.len() >= 2 {
                         let num1 = self.stack.pop().unwrap();
                         let num2 = self.stack.pop().unwrap();
@@ -112,26 +112,21 @@ impl<'a> Lexer <'a>{
                 //Depth checking is required lest the expression would close when it finds the end of a nested expression
                 '(' => {
                     self.pos += 1;
-                    self.expression_depth += 1;
+                    let mut depth: i64 = 0;
                     let mut buf:String = String::new();
 
                     while self.pos < self.src.len(){
-                        if self.current_char() == ')'&& self.expression_depth == 1 {
-                            break;
-                        } else {
-                            buf.push(self.current_char());
-                        }
-
                         if self.current_char() == '(' {
-                            self.expression_depth += 1;
+                            depth += 1;
                         } else if self.current_char() == ')' {
-                            self.expression_depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                            depth -= 1;
                         }
-
+                        buf.push(self.current_char());
                         self.pos += 1;
                     }
-
-                    //Push the expression to the expression stack
                     self.expression_stack.push(buf);
 
                 }
@@ -246,6 +241,11 @@ impl<'a> Lexer <'a>{
                             self.stack.swap();
                         },
 
+                        "neg" => {
+                            let num = self.stack.pop().unwrap();
+                            self.stack.push(-num);
+                        },
+
                         //For loop
                         "for" => {
                             //Check if there is enough expressions to execute the for loop
@@ -279,7 +279,7 @@ impl<'a> Lexer <'a>{
 
                                 let mut integer_expression:Vec<i64> = Vec::new();
 
-                                for c in expression.chars() {
+                                for c in expression.chars(){
                                     let position:u32 = self.ascii.iter()
                                         .position(|&x| x.0 == c)
                                         .unwrap() as u32;
@@ -341,7 +341,7 @@ impl<'a> Lexer <'a>{
     }
 
     //Create a new lexer for the expression manipulating the current stack
-    fn eval_expr(&mut self)  { Lexer::new(self.expression_stack.pop().unwrap(), &mut self.stack, &mut self.fn_var).lex(); }
+    fn eval_expr(&mut self)  { Lexer::new(&self.expression_stack.pop().unwrap(), &mut self.stack, &mut self.fn_var).lex(); }
 
 }
 
