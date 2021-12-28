@@ -22,7 +22,7 @@ enum RunType {
 
 fn main() {
     
-    // Get the filename from a command line argument
+    // Get the argument from a command line argument
     let command_line_argument = &env::args().nth(1);
 
     if is_argument(&command_line_argument.as_ref().unwrap()){
@@ -34,10 +34,11 @@ fn main() {
 }
 
 fn is_argument(argument: &String) -> bool {
-    if argument.is_empty(){
-        return false;
-    }
-    return true;
+    return if argument.is_empty(){
+        false
+    } else {
+        true
+    };
 }
 
 fn is_repl_or_filepath(argument: &String) -> RunType {
@@ -61,6 +62,8 @@ fn run(run_type: RunType){
 fn run_readable_file(file: &String) {
     if can_be_read(file){
         run_file(file);
+    } else {
+        panic!("File {} cannot be read", file);
     }
 }
 
@@ -81,11 +84,7 @@ fn run_line() {
 }
 
 fn can_be_read(file: &String) -> bool {
-
-    if std::fs::read_to_string(file).is_ok() {
-        return true;
-    }
-    panic!("Could not open/read file");
+    return std::fs::read_to_string(file).is_ok();
 }
 
 fn run_file(file: &String){
